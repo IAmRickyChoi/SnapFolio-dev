@@ -31,7 +31,7 @@ class ContactListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // 테스트 데이터
     final List<Contact> contacts = [
-      Contact(name: "Ricky Choi", age: 27, tag: "Flutter Technical Editor", photoCount: 10), // 많이 (공간 허용하는 만큼 표시 + 나머지)
+      Contact(name: "Ricky Choi", age: 27, tag: "Flutter Technical Editor", photoCount: 10), // 공간 허용하는 만큼 표시 + 나머지
       Contact(name: "Kim Dart", age: 30, tag: "Backend Dev", photoCount: 4),         // 적당히
       Contact(name: "Lee Widget", age: 22, tag: "Newbie", photoCount: 2),            // 적음
       Contact(name: "Alice UI", age: 35, tag: "Designer", photoCount: 0),            // 없음
@@ -39,7 +39,7 @@ class ContactListPage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Zenn Contacts')),
+      appBar: AppBar(title: const Text('SnapFolio')),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: contacts.length,
@@ -154,8 +154,7 @@ class ContactItem extends StatelessWidget {
                           int maxPossibleFitCount = ((availableWidth + spacing) / (targetSquareSide + spacing)).floor();
 
                           // 3. 실제 표시할 개수 결정
-                          // ★ 중요: 3개 제한 삭제됨.
-                          // 데이터 개수와 물리적 공간 중 작은 값 선택
+                          // 데이터 개수와 물리적 공간 중 작은 값 선택 (3개 제한 없음)
                           int displayCount = min(contact.photoCount, maxPossibleFitCount);
 
                           if (displayCount <= 0) return const SizedBox();
