@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1032203695512",
+    "project_id": "snapfolio-8d760",
+    "storage_bucket": "snapfolio-8d760.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1032203695512:android:9c4dc0360cacdb639be7ed",
+        "android_client_info": {
+          "package_name": "com.ricky.snapfolio"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjeFUvNVjBBQ0oOR0g-6xgkdD3PmM-RWQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
