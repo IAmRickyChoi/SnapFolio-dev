@@ -3,6 +3,7 @@ import '../../domain/entities/contact.dart';
 import '../../domain/repositories/contact_repository.dart';
 import '../widgets/contact_item_card.dart';
 import 'contact_detail_page.dart'; // (상세 페이지 파일은 아래에 생성)
+import 'add_contact_page.dart'; // 이거 추가!
 
 class ContactListPage extends StatefulWidget {
   final ContactRepository repository;
@@ -49,13 +50,24 @@ class _ContactListPageState extends State<ContactListPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ContactDetailPage(contact: _contacts[index]),
+                        builder: (context) =>
+                            ContactDetailPage(contact: _contacts[index]),
                       ),
                     );
                   },
                 );
               },
             ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // ★ 여기를 바꿨음! (페이지 이동 -> 다이얼로그 띄우기)
+          showDialog(
+            context: context,
+            builder: (context) => const AddContactDialog(), // 팝업창 소환
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }

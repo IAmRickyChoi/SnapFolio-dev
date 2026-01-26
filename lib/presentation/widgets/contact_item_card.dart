@@ -104,7 +104,8 @@ class ContactItemCard extends StatelessWidget {
 
         if (targetSquareSide <= 0) return const SizedBox();
 
-        int maxPossibleFitCount = ((availableWidth + spacing) / (targetSquareSide + spacing)).floor();
+        int maxPossibleFitCount =
+            ((availableWidth + spacing) / (targetSquareSide + spacing)).floor();
         int displayCount = min(photoCount, maxPossibleFitCount);
 
         if (displayCount <= 0) return const SizedBox();
@@ -117,44 +118,43 @@ class ContactItemCard extends StatelessWidget {
             int plusNumber = photoCount - (displayCount - 1);
 
             return // 기존: Container(color: Colors.grey[300], child: Icon(...))
-// 변경: 아래 코드로 바꿔치기
-
-Container(
-  width: targetSquareSide,
-  height: targetSquareSide,
-  margin: EdgeInsets.only(right: isLastItem ? 0 : spacing),
-  decoration: BoxDecoration(
-    border: Border.all(color: Colors.black12, width: 1), // 테두리 연하게
-    borderRadius: BorderRadius.circular(4),
-  ),
-  clipBehavior: Clip.hardEdge, // 둥근 모서리 밖으로 이미지 안 튀어나가게 자름
-  child: Stack(
-    fit: StackFit.expand,
-    children: [
-      // 1. 랜덤 이미지 (인덱스와 이름으로 시드값 줘서 매번 같은 이미지 뜨게 함)
-      Image.network(
-        "https://picsum.photos/seed/${contact.name}$index/200", 
-        fit: BoxFit.cover,
-      ),
-      
-      // 2. 오버레이 (+N)
-      if (showOverlay)
-        Container(
-          color: Colors.black.withOpacity(0.6), // 반투명 검정
-          child: Center(
-            child: Text(
-              "+$plusNumber",
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
+            // 변경: 아래 코드로 바꿔치기
+            Container(
+              width: targetSquareSide,
+              height: targetSquareSide,
+              margin: EdgeInsets.only(right: isLastItem ? 0 : spacing),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black12, width: 1), // 테두리 연하게
+                borderRadius: BorderRadius.circular(4),
               ),
-            ),
-          ),
-        ),
-    ],
-  ),
-);
+              clipBehavior: Clip.hardEdge, // 둥근 모서리 밖으로 이미지 안 튀어나가게 자름
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // 1. 랜덤 이미지 (인덱스와 이름으로 시드값 줘서 매번 같은 이미지 뜨게 함)
+                  Image.network(
+                    "https://picsum.photos/seed/${contact.name}$index/200",
+                    fit: BoxFit.cover,
+                  ),
+
+                  // 2. 오버레이 (+N)
+                  if (showOverlay)
+                    Container(
+                      color: Colors.black.withOpacity(0.6), // 반투명 검정
+                      child: Center(
+                        child: Text(
+                          "+$plusNumber",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
           }),
         );
       },
