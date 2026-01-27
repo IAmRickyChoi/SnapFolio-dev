@@ -129,4 +129,18 @@ class ContactRepositoryImpl implements ContactRepository {
       print("사진 삭제 실패: $e");
     }
   }
+
+  @override
+  Future<void> updateContactInfo(String contactId, String name, String age, String tag) async {
+    try {
+      await _firestore.collection('contacts').doc(contactId).update({
+        'name': name,
+        'age': int.tryParse(age) ?? 0,
+        'tag': tag,
+      });
+    } catch (e) {
+      print("정보 수정 실패: $e");
+      throw Exception('수정 중 오류 발생');
+    }
+  }
 }

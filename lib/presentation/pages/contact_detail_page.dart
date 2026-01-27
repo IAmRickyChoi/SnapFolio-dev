@@ -18,14 +18,22 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
 
   List<String> _galleryPhotos = [];
   bool _isLoading = true;
-  
-  // 프로필 사진이 바뀌면 화면에 바로 반영하기 위해 변수로 관리
-  String? _currentProfileUrl; 
+
+  // ★ 화면에 보여줄 데이터들을 변수로 관리 (수정되면 바로 반영하려고)
+  late String _name;
+  late int _age;
+  late String _tag;
+  String? _currentProfileUrl;
 
   @override
   void initState() {
     super.initState();
-    _currentProfileUrl = widget.contact.profileImageUrl; // 초기값 설정
+    // 초기값은 전달받은 연락처 정보로 설정
+    _name = widget.contact.name;
+    _age = widget.contact.age;
+    _tag = widget.contact.tag;
+    _currentProfileUrl = widget.contact.profileImageUrl;
+
     _loadGallery();
   }
 
@@ -43,7 +51,7 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
   Future<void> _changeProfileImage() async {
     // 1. 사진 고르고 업로드
     final newUrl = await _imageRepo.pickAndUploadImage();
-    
+
     if (newUrl != null) {
       setState(() => _isLoading = true); // 로딩 시작
 
@@ -55,11 +63,11 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
         _currentProfileUrl = newUrl;
         _isLoading = false;
       });
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("프로필 사진이 변경되었습니다!")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("프로필 사진이 변경되었습니다!")));
       }
     }
   }
@@ -96,30 +104,104 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
 
     if (confirm == true) {
       setState(() => _isLoading = true);
-      
+
       // 1. DB에서 삭제
       await _contactRepo.deleteGalleryPhoto(widget.contact.id, photoUrl);
-      
+
       // 2. 목록 새로고침
       await _loadGallery();
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("사진이 삭제되었습니다.")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("사진이 삭제되었습니다.")));
       }
     }
+  }
+  // ★ 기능 추가: 정보 수정 팝업 띄우기
+  Future<void> _editContactInfo() async {
+    // 현재 정보를 컨트롤러에 미리 채워넣기
+    final nameController = TextEditingController(text: _name);
+    final ageController = TextEditingController(text: _age.toString());
+    final tagController = TextEditingController(text: _tag);
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('정보 수정'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: '이름'),
+            ),
+            TextField(
+              controller: ageController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: '나이'),
+            ),
+            TextField(
+              controller: tagController,
+              decoration: const InputDecoration(labelText: '특징'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('취소'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.isEmpty) return;
+
+              // 1. DB 업데이트 요청
+              await _contactRepo.updateContactInfo(
+                widget.contact.id,
+                nameController.text,
+                ageController.text,
+                tagController.text,
+              );
+
+              // 2. 화면 데이터 갱신
+              if (mounted) {
+                setState(() {
+                  _name = nameController.text;
+                  _age = int.tryParse(ageController.text) ?? 0;
+                  _tag = tagController.text;
+                });
+                Navigator.pop(context); // 팝업 닫기
+
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text("정보가 수정되었습니다!")));
+              }
+            },
+            child: const Text('저장'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.contact.name),
+        // ★ 제목도 수정된 이름으로 보여주기
+        title: Text(_name),
         actions: [
+          // ★ 수정 버튼 (연필 아이콘) 추가
+          IconButton(
+            onPressed: _editContactInfo,
+            icon: const Icon(Icons.edit),
+            tooltip: "정보 수정",
+          ),
           IconButton(
             onPressed: _addPhoto,
             icon: const Icon(Icons.add_a_photo),
+            tooltip: "사진 추가",
           ),
         ],
       ),
@@ -128,10 +210,10 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ★ 프로필 사진 영역 (클릭 가능하게 변경)
+            // 프로필 사진
             Center(
               child: GestureDetector(
-                onTap: _changeProfileImage, // 클릭하면 변경 함수 실행
+                onTap: _changeProfileImage,
                 child: Stack(
                   children: [
                     Hero(
@@ -147,16 +229,11 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
                             : null,
                       ),
                     ),
-                    // 카메라 아이콘 배지 (수정 가능하다는 힌트)
                     Positioned(
-                      bottom: 0,
-                      right: 0,
+                      bottom: 0, right: 0,
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle,
-                        ),
+                        decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
                         child: const Icon(Icons.edit, size: 20, color: Colors.white),
                       ),
                     ),
@@ -166,57 +243,41 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
             ),
             const SizedBox(height: 24),
             
-            Text('이름: ${widget.contact.name}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            // ★ 수정된 변수(_name, _age, _tag) 사용
+            Text('이름: $_name', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('나이: ${widget.contact.age}세', style: const TextStyle(fontSize: 18)),
+            Text('나이: $_age세', style: const TextStyle(fontSize: 18)),
             const SizedBox(height: 4),
-            Text('특징: ${widget.contact.tag}', style: const TextStyle(fontSize: 18, color: Colors.grey)),
+            Text('특징: $_tag', style: const TextStyle(fontSize: 18, color: Colors.grey)),
             
             const Divider(height: 40, thickness: 1),
             
+            // 갤러리 영역 (기존 코드와 동일)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '갤러리 (${_galleryPhotos.length}장)', 
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
-                ),
+                Text('갤러리 (${_galleryPhotos.length}장)', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 if (_isLoading) const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
               ],
             ),
             const SizedBox(height: 16),
-
             _galleryPhotos.isEmpty
-                ? const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(40.0),
-                      child: Text("사진을 추가해보세요!", style: TextStyle(color: Colors.grey)),
-                    ),
-                  )
+                ? const Center(child: Padding(padding: EdgeInsets.all(40.0), child: Text("사진을 추가해보세요!", style: TextStyle(color: Colors.grey))))
                 : GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
+                      crossAxisCount: 3, crossAxisSpacing: 8, mainAxisSpacing: 8,
                     ),
                     itemCount: _galleryPhotos.length,
                     itemBuilder: (context, index) {
                       final photoUrl = _galleryPhotos[index];
                       return GestureDetector(
-                        // ★ 꾹 누르면 삭제 함수 실행
                         onLongPress: () => _deletePhoto(photoUrl),
-                        onTap: () {
-                           // (나중에 크게 보기 기능 넣을 곳)
-                        },
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
-                            image: DecorationImage(
-                              image: NetworkImage(photoUrl),
-                              fit: BoxFit.cover,
-                            ),
+                            image: DecorationImage(image: NetworkImage(photoUrl), fit: BoxFit.cover),
                           ),
                         ),
                       );
