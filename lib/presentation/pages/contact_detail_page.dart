@@ -132,6 +132,7 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
                       return GestureDetector(
                         onTap: () {
                           // (심화) 나중에 여기 누르면 사진 크게 보기 기능 넣을 수 있음
+                          print('사진 $index 클릭됨');
                         },
                         child: Container(
                           decoration: BoxDecoration(

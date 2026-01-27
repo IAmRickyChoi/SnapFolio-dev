@@ -49,20 +49,30 @@ class _ContactListPageState extends State<ContactListPage> {
                   padding: const EdgeInsets.all(16),
                   itemCount: _contacts.length,
                   separatorBuilder: (context, index) => const SizedBox(height: 16),
-                  itemBuilder: (context, index) {
-                    return ContactItemCard(
-                      contact: _contacts[index],
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ContactDetailPage(contact: _contacts[index]),
-                          ),
-                        );
-                      },
-                    );
-                  },
+                  // ... (위쪽 코드는 그대로)
+
+            itemBuilder: (context, index) {
+              return ContactItemCard(
+                contact: _contacts[index],
+                // ★ 수정된 부분 시작
+                onTap: () async { // 1. async 추가
+                  // 2. 상세 페이지 다녀올 때까지 기다림 (await)
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ContactDetailPage(contact: _contacts[index]),
+                    ),
+                  );
+                  
+                  // 3. 갔다 오면 데이터 새로고침! (이게 있어야 숫자가 바뀜)
+                  _loadData(); 
+                },
+                // ★ 수정된 부분 끝
+              );
+            },
+
+// ... (아래쪽 코드는 그대로)
                 ),
       floatingActionButton: FloatingActionButton(
         // ★ 여기가 핵심 수정 포인트!

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data'; // ★ 추가됨
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -6,32 +7,35 @@ class ImageRepository {
   final _picker = ImagePicker();
   final _storage = FirebaseStorage.instance;
 
-  // 1. 갤러리에서 사진 고르고 -> 바로 업로드 -> 다운로드 URL 받기 (원스톱 서비스)
   Future<String?> pickAndUploadImage() async {
     try {
-      // (1) 갤러리 열기
+      // 1. 갤러리 열기
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      
-      // 사진 안 고르고 취소했을 경우
       if (image == null) return null;
 
       File file = File(image.path);
-
-      // (2) 파일 이름 만들기 (겹치지 않게 시간으로 작명)
       String fileName = 'contacts/${DateTime.now().millisecondsSinceEpoch}.jpg';
-
-      // (3) 파이어베이스 스토리지(창고)로 전송
       Reference ref = _storage.ref().child(fileName);
-      await ref.putFile(file);
 
-      // (4) 업로드된 사진의 인터넷 주소(URL) 가져오기
+      // ★ 메타데이터 설정 (이건 유지)
+      final metadata = SettableMetadata(contentType: 'image/jpeg');
+
+      // ====================================================
+      // ★ 핵심 수정: putFile 대신 putData 사용!
+      // (iOS 시뮬레이터 -1017 에러 회피용 필살기)
+      // ====================================================
+      Uint8List fileBytes = await file.readAsBytes();
+      await ref.putData(fileBytes, metadata);
+      // ====================================================
+
+      // 3. 다운로드 주소 받기
       String downloadUrl = await ref.getDownloadURL();
+      print("✅ 진짜 업로드 성공! 주소: $downloadUrl");
       
-      print("업로드 성공! 주소: $downloadUrl");
       return downloadUrl;
 
     } catch (e) {
-      print("사진 업로드 실패: $e");
+      print("🔥 사진 업로드 실패 (에러코드 확인): $e");
       return null;
     }
   }

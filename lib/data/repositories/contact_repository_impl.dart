@@ -5,8 +5,12 @@ import '../../domain/repositories/contact_repository.dart';
 class ContactRepositoryImpl implements ContactRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // (getContacts, addContact, addGalleryPhoto는 기존과 동일 - 생략)
   @override
   Future<List<Contact>> getContacts() async {
+    // ... (기존 코드 유지)
+    // 전체 코드를 덮어쓰실 거면 이전 답변의 코드를 참고하되, 아래 getGalleryPhotos만 바꾸셔도 됩니다.
+    // 편의를 위해 전체 흐름이 안 끊기게 아래 부분만 집중적으로 보여드립니다.
     try {
       final snapshot = await _firestore
           .collection('contacts')
@@ -16,7 +20,7 @@ class ContactRepositoryImpl implements ContactRepository {
       return snapshot.docs.map((doc) {
         final data = doc.data();
         return Contact(
-          id: doc.id, // ★ 중요: DB의 문서 ID를 가져와서 담음!
+          id: doc.id,
           name: data['name'] ?? 'Unknown',
           age: data['age'] ?? 0,
           tag: data['tag'] ?? '',
@@ -25,13 +29,13 @@ class ContactRepositoryImpl implements ContactRepository {
         );
       }).toList();
     } catch (e) {
-      print("🔥 데이터 가져오다 에러남: $e");
       return [];
     }
   }
 
   @override
   Future<void> addContact(String name, String age, String tag, String? imageUrl) async {
+    // ... (기존 코드 유지)
     await _firestore.collection('contacts').add({
       'name': name,
       'age': int.tryParse(age) ?? 0,
@@ -42,11 +46,10 @@ class ContactRepositoryImpl implements ContactRepository {
     });
   }
 
-  // ★ 1. 개인 앨범에 사진 추가하기
   @override
   Future<void> addGalleryPhoto(String contactId, String imageUrl) async {
-    try {
-      // (1) 서브 컬렉션 'photos'에 사진 주소 저장
+    // ... (기존 코드 유지)
+     try {
       await _firestore
           .collection('contacts')
           .doc(contactId)
@@ -56,7 +59,6 @@ class ContactRepositoryImpl implements ContactRepository {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // (2) 사진 개수(photoCount) +1 증가 시키기
       await _firestore.collection('contacts').doc(contactId).update({
         'photoCount': FieldValue.increment(1),
       });
@@ -65,16 +67,24 @@ class ContactRepositoryImpl implements ContactRepository {
     }
   }
 
-  // ★ 2. 개인 앨범 사진들 가져오기
+  // ★★★ 여기가 핵심 수정! ★★★
   @override
-  Future<List<String>> getGalleryPhotos(String contactId) async {
+  Future<List<String>> getGalleryPhotos(String contactId, {int? limit}) async {
     try {
-      final snapshot = await _firestore
+      // 1. 쿼리 기본 설정 (정렬)
+      Query query = _firestore
           .collection('contacts')
           .doc(contactId)
           .collection('photos')
-          .orderBy('createdAt', descending: true)
-          .get();
+          .orderBy('createdAt', descending: true);
+
+      // 2. 만약 limit이 있으면 제한 걸기 (리스트 화면용)
+      if (limit != null) {
+        query = query.limit(limit);
+      }
+
+      // 3. 가져오기
+      final snapshot = await query.get();
 
       return snapshot.docs.map((doc) => doc['imageUrl'] as String).toList();
     } catch (e) {
