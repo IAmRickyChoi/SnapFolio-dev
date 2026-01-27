@@ -91,4 +91,42 @@ class ContactRepositoryImpl implements ContactRepository {
       return [];
     }
   }
+
+  // ★ 1. 프로필 사진 업데이트 구현
+  @override
+  Future<void> updateProfileImage(String contactId, String newImageUrl) async {
+    try {
+      await _firestore.collection('contacts').doc(contactId).update({
+        'profileImageUrl': newImageUrl,
+      });
+    } catch (e) {
+      print("프로필 수정 실패: $e");
+    }
+  }
+
+  // ★ 2. 갤러리 사진 삭제 구현
+  @override
+  Future<void> deleteGalleryPhoto(String contactId, String photoUrl) async {
+    try {
+      // (1) URL이 일치하는 사진 문서를 찾아서 삭제
+      // (기존 코드를 안 깨뜨리려고 URL로 찾습니다)
+      final querySnapshot = await _firestore
+          .collection('contacts')
+          .doc(contactId)
+          .collection('photos')
+          .where('imageUrl', isEqualTo: photoUrl)
+          .get();
+
+      for (var doc in querySnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // (2) 사진 개수 -1 감소 (0보다 작아지진 않게)
+      await _firestore.collection('contacts').doc(contactId).update({
+        'photoCount': FieldValue.increment(-1),
+      });
+    } catch (e) {
+      print("사진 삭제 실패: $e");
+    }
+  }
 }
