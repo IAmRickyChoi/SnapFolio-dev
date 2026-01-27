@@ -33,19 +33,30 @@ class ContactItemCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 프로필 영역
+            // ★ 1. 프로필 영역 (수정됨)
             Container(
               width: 120,
-              decoration: const BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                color: Colors.grey[300], // 배경색 살짝 연하게
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(12),
                   bottomLeft: Radius.circular(12),
                 ),
+                // ★ 사진이 있으면 배경이미지로 꽉 채우기!
+                image: contact.profileImageUrl != null
+                    ? DecorationImage(
+                        image: NetworkImage(contact.profileImageUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              child: const Icon(Icons.person, size: 50, color: Colors.white),
+              // 사진 없을 때만 사람 아이콘 보여주기
+              child: contact.profileImageUrl == null
+                  ? const Icon(Icons.person, size: 50, color: Colors.white)
+                  : null,
             ),
-            // 정보 영역
+            
+            // 2. 정보 영역 (기존 그대로)
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
@@ -65,6 +76,7 @@ class ContactItemCard extends StatelessWidget {
     );
   }
 
+  // (아래 _buildInfoSection, _buildResponsiveGrid 함수들은 네가 짠 그대로 두면 됨)
   Widget _buildInfoSection() {
     return Container(
       width: double.infinity,
@@ -117,30 +129,25 @@ class ContactItemCard extends StatelessWidget {
             bool showOverlay = isLastItem && (photoCount > displayCount);
             int plusNumber = photoCount - (displayCount - 1);
 
-            return // 기존: Container(color: Colors.grey[300], child: Icon(...))
-            // 변경: 아래 코드로 바꿔치기
-            Container(
+            return Container(
               width: targetSquareSide,
               height: targetSquareSide,
               margin: EdgeInsets.only(right: isLastItem ? 0 : spacing),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.black12, width: 1), // 테두리 연하게
+                border: Border.all(color: Colors.black12, width: 1),
                 borderRadius: BorderRadius.circular(4),
               ),
-              clipBehavior: Clip.hardEdge, // 둥근 모서리 밖으로 이미지 안 튀어나가게 자름
+              clipBehavior: Clip.hardEdge,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // 1. 랜덤 이미지 (인덱스와 이름으로 시드값 줘서 매번 같은 이미지 뜨게 함)
                   Image.network(
                     "https://picsum.photos/seed/${contact.name}$index/200",
                     fit: BoxFit.cover,
                   ),
-
-                  // 2. 오버레이 (+N)
                   if (showOverlay)
                     Container(
-                      color: Colors.black.withOpacity(0.6), // 반투명 검정
+                      color: Colors.black.withOpacity(0.6),
                       child: Center(
                         child: Text(
                           "+$plusNumber",
