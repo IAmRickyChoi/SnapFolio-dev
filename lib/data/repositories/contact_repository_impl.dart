@@ -105,29 +105,30 @@ class ContactRepositoryImpl implements ContactRepository {
     }
   }
 
-  // ★ 2. 갤러리 사진 삭제 구현
+  // ★ 2. 갤러리 사진 삭제 구현 (여러 장 버전으로 변경)
   @override
-  Future<void> deleteGalleryPhoto(String contactId, String photoUrl) async {
+  Future<void> deleteGalleryPhotos(String contactId, List<String> photoUrls) async {
+    if (photoUrls.isEmpty) return;
+
     try {
-      // (1) URL이 일치하는 사진 문서를 찾아서 삭제
-      // (기존 코드를 안 깨뜨리려고 URL로 찾습니다)
-      final querySnapshot = await _firestore
-          .collection('contacts')
-          .doc(contactId)
-          .collection('photos')
-          .where('imageUrl', isEqualTo: photoUrl)
-          .get();
+      final contactRef = _firestore.collection('contacts').doc(contactId);
+      final photosQuery = contactRef.collection('photos').where('imageUrl', whereIn: photoUrls);
+      
+      final querySnapshot = await photosQuery.get();
+      
+      WriteBatch batch = _firestore.batch();
 
       for (var doc in querySnapshot.docs) {
-        await doc.reference.delete();
+        batch.delete(doc.reference);
       }
 
-      // (2) 사진 개수 -1 감소 (0보다 작아지진 않게)
-      await _firestore.collection('contacts').doc(contactId).update({
-        'photoCount': FieldValue.increment(-1),
+      batch.update(contactRef, {
+        'photoCount': FieldValue.increment(-photoUrls.length),
       });
+      
+      await batch.commit();
     } catch (e) {
-      print("사진 삭제 실패: $e");
+      print("사진 여러장 삭제 실패: $e");
     }
   }
 
