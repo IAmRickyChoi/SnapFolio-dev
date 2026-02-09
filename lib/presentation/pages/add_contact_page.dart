@@ -34,75 +34,220 @@ class _AddContactDialogState extends State<AddContactDialog> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('새 연락처 추가'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            GestureDetector(
-              onTap: _pickImage,
-              child: CircleAvatar(
-                radius: 40,
-                backgroundColor: Colors.grey[200],
-                backgroundImage: _profileImageUrl != null
-                    ? NetworkImage(_profileImageUrl!)
-                    : null,
-                child: _profileImageUrl == null
-                    ? const Icon(Icons.camera_alt, color: Colors.grey)
-                    : null,
+    @override
+
+    Widget build(BuildContext context) {
+
+      final theme = Theme.of(context);
+
+      return AlertDialog(
+
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+
+        title: const Center(child: Text('Add New Contact')),
+
+        content: SingleChildScrollView(
+
+          child: Column(
+
+            mainAxisSize: MainAxisSize.min,
+
+            children: [
+
+              const SizedBox(height: 16),
+
+              GestureDetector(
+
+                onTap: _pickImage,
+
+                child: Stack(
+
+                  alignment: Alignment.center,
+
+                  children: [
+
+                    CircleAvatar(
+
+                      radius: 50,
+
+                      backgroundColor: Colors.grey[200],
+
+                      backgroundImage: _profileImageUrl != null
+
+                          ? NetworkImage(_profileImageUrl!)
+
+                          : null,
+
+                    ),
+
+                    if (_profileImageUrl == null)
+
+                      Icon(Icons.add_a_photo_outlined, color: Colors.grey[600], size: 30)
+
+                    else
+
+                      Container(
+
+                        decoration: BoxDecoration(
+
+                          color: Colors.black.withOpacity(0.4),
+
+                          shape: BoxShape.circle,
+
+                        ),
+
+                        child: const Icon(Icons.edit, color: Colors.white, size: 30),
+
+                      ),
+
+                  ],
+
+                ),
+
               ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: '이름', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _ageController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: '나이', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _featureController,
-              decoration: const InputDecoration(labelText: '특징', border: OutlineInputBorder()),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('취소'),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            // 1. 이름 비어있으면 저장 안 함
-            if (_nameController.text.isEmpty) return;
 
-            // 2. 저장소 불러오기
-            final repository = ContactRepositoryImpl();
+              const SizedBox(height: 24),
 
-            // 3. 진짜 저장! (async/await 필수)
-            await repository.addContact(
-              _nameController.text,
-              _ageController.text,
-              _featureController.text,
-              _profileImageUrl,
-            );
+              TextField(
 
-            // 4. 창 닫기 (이러면 리스트 페이지가 알아서 새로고침 됨)
-            if (context.mounted) {
-              Navigator.pop(context);
-            }
-          },
-          child: const Text('저장'),
+                controller: _nameController,
+
+                decoration: InputDecoration(
+
+                  labelText: 'Name',
+
+                  prefixIcon: const Icon(Icons.person_outline),
+
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+
+                ),
+
+              ),
+
+              const SizedBox(height: 16),
+
+              TextField(
+
+                controller: _ageController,
+
+                keyboardType: TextInputType.number,
+
+                decoration: InputDecoration(
+
+                  labelText: 'Age',
+
+                  prefixIcon: const Icon(Icons.cake_outlined),
+
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+
+                ),
+
+              ),
+
+              const SizedBox(height: 16),
+
+              TextField(
+
+                controller: _featureController,
+
+                decoration: InputDecoration(
+
+                  labelText: 'Tag',
+
+                  prefixIcon: const Icon(Icons.tag),
+
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+
+                ),
+
+              ),
+
+            ],
+
+          ),
+
         ),
-      ],
-    );
+
+        actionsAlignment: MainAxisAlignment.center,
+
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+
+        actions: [
+
+          Row(
+
+            children: [
+
+              Expanded(
+
+                child: TextButton(
+
+                  onPressed: () => Navigator.pop(context),
+
+                  child: const Text('Cancel'),
+
+                ),
+
+              ),
+
+              const SizedBox(width: 8),
+
+              Expanded(
+
+                child: FilledButton(
+
+                  style: FilledButton.styleFrom(
+
+                    shape: RoundedRectangleBorder(
+
+                      borderRadius: BorderRadius.circular(12),
+
+                    ),
+
+                  ),
+
+                  onPressed: () async {
+
+                    if (_nameController.text.isEmpty) return;
+
+                    final repository = ContactRepositoryImpl();
+
+                    await repository.addContact(
+
+                      _nameController.text,
+
+                      _ageController.text,
+
+                      _featureController.text,
+
+                      _profileImageUrl,
+
+                    );
+
+                    if (context.mounted) {
+
+                      Navigator.pop(context);
+
+                    }
+
+                  },
+
+                  child: const Text('Save'),
+
+                ),
+
+              ),
+
+            ],
+
+          ),
+
+        ],
+
+      );
+
+    }
+
   }
-}
+
+  

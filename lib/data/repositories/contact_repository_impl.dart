@@ -5,12 +5,8 @@ import '../../domain/repositories/contact_repository.dart';
 class ContactRepositoryImpl implements ContactRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // (getContacts, addContact, addGalleryPhoto는 기존과 동일 - 생략)
   @override
   Future<List<Contact>> getContacts() async {
-    // ... (기존 코드 유지)
-    // 전체 코드를 덮어쓰실 거면 이전 답변의 코드를 참고하되, 아래 getGalleryPhotos만 바꾸셔도 됩니다.
-    // 편의를 위해 전체 흐름이 안 끊기게 아래 부분만 집중적으로 보여드립니다.
     try {
       final snapshot = await _firestore
           .collection('contacts')
@@ -47,23 +43,28 @@ class ContactRepositoryImpl implements ContactRepository {
   }
 
   @override
-  Future<void> addGalleryPhoto(String contactId, String imageUrl) async {
-    // ... (기존 코드 유지)
-     try {
-      await _firestore
-          .collection('contacts')
-          .doc(contactId)
-          .collection('photos')
-          .add({
-        'imageUrl': imageUrl,
-        'createdAt': FieldValue.serverTimestamp(),
+  Future<void> addGalleryPhotos(String contactId, List<String> imageUrls) async {
+    try {
+      final contactRef = _firestore.collection('contacts').doc(contactId);
+      final photosRef = contactRef.collection('photos');
+      
+      WriteBatch batch = _firestore.batch();
+
+      for (var imageUrl in imageUrls) {
+        final newPhotoDoc = photosRef.doc();
+        batch.set(newPhotoDoc, {
+          'imageUrl': imageUrl,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      batch.update(contactRef, {
+        'photoCount': FieldValue.increment(imageUrls.length),
       });
 
-      await _firestore.collection('contacts').doc(contactId).update({
-        'photoCount': FieldValue.increment(1),
-      });
+      await batch.commit();
     } catch (e) {
-      print("앨범 저장 실패: $e");
+      print("갤러리 여러장 저장 실패: $e");
     }
   }
 
@@ -130,17 +131,52 @@ class ContactRepositoryImpl implements ContactRepository {
     }
   }
 
-  @override
-  Future<void> updateContactInfo(String contactId, String name, String age, String tag) async {
-    try {
-      await _firestore.collection('contacts').doc(contactId).update({
-        'name': name,
-        'age': int.tryParse(age) ?? 0,
-        'tag': tag,
-      });
-    } catch (e) {
-      print("정보 수정 실패: $e");
-      throw Exception('수정 중 오류 발생');
+    @override
+
+    Future<void> updateContactInfo(String contactId, String name, String age, String tag) async {
+
+      try {
+
+        await _firestore.collection('contacts').doc(contactId).update({
+
+          'name': name,
+
+          'age': int.tryParse(age) ?? 0,
+
+          'tag': tag,
+
+        });
+
+      } catch (e) {
+
+        print("정보 수정 실패: $e");
+
+        throw Exception('수정 중 오류 발생');
+
+      }
+
     }
+
+  
+
+    @override
+
+    Future<void> deleteContact(String contactId) async {
+
+      try {
+
+        await _firestore.collection('contacts').doc(contactId).delete();
+
+      } catch (e) {
+
+        print("연락처 삭제 실패: $e");
+
+        throw Exception('삭제 중 오류 발생');
+
+      }
+
+    }
+
   }
-}
+
+  

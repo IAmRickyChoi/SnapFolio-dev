@@ -73,10 +73,10 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
   }
 
   Future<void> _addPhoto() async {
-    final url = await _imageRepo.pickAndUploadImage();
-    if (url != null) {
+    final urls = await _imageRepo.pickAndUploadMultipleImages();
+    if (urls.isNotEmpty) {
       setState(() => _isLoading = true);
-      await _contactRepo.addGalleryPhoto(widget.contact.id, url);
+      await _contactRepo.addGalleryPhotos(widget.contact.id, urls);
       await _loadGallery();
     }
   }
@@ -187,105 +187,167 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        // ★ 제목도 수정된 이름으로 보여주기
         title: Text(_name),
         actions: [
-          // ★ 수정 버튼 (연필 아이콘) 추가
           IconButton(
             onPressed: _editContactInfo,
-            icon: const Icon(Icons.edit),
+            icon: const Icon(Icons.edit_note),
             tooltip: "정보 수정",
           ),
           IconButton(
             onPressed: _addPhoto,
-            icon: const Icon(Icons.add_a_photo),
+            icon: const Icon(Icons.add_a_photo_outlined),
             tooltip: "사진 추가",
           ),
         ],
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 프로필 사진
-            Center(
-              child: GestureDetector(
-                onTap: _changeProfileImage,
-                child: Stack(
-                  children: [
-                    Hero(
-                      tag: widget.contact.id,
-                      child: CircleAvatar(
-                        radius: 60,
-                        backgroundColor: Colors.grey[200],
-                        backgroundImage: _currentProfileUrl != null
-                            ? NetworkImage(_currentProfileUrl!)
-                            : null,
-                        child: _currentProfileUrl == null
-                            ? const Icon(Icons.person, size: 60, color: Colors.grey)
-                            : null,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0, right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
-                        child: const Icon(Icons.edit, size: 20, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            
-            // ★ 수정된 변수(_name, _age, _tag) 사용
-            Text('이름: $_name', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text('나이: $_age세', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 4),
-            Text('특징: $_tag', style: const TextStyle(fontSize: 18, color: Colors.grey)),
-            
-            const Divider(height: 40, thickness: 1),
-            
-            // 갤러리 영역 (기존 코드와 동일)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('갤러리 (${_galleryPhotos.length}장)', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                if (_isLoading) const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                _buildProfileCard(theme),
+                const SizedBox(height: 24),
+                _buildGallerySection(theme),
               ],
             ),
-            const SizedBox(height: 16),
-            _galleryPhotos.isEmpty
-                ? const Center(child: Padding(padding: EdgeInsets.all(40.0), child: Text("사진을 추가해보세요!", style: TextStyle(color: Colors.grey))))
-                : GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3, crossAxisSpacing: 8, mainAxisSpacing: 8,
+          ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileCard(ThemeData theme) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            GestureDetector(
+              onTap: _changeProfileImage,
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  Hero(
+                    tag: widget.contact.id,
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Colors.grey[200],
+                      backgroundImage: _currentProfileUrl != null
+                          ? NetworkImage(_currentProfileUrl!)
+                          : null,
+                      child: _currentProfileUrl == null
+                          ? Icon(Icons.person, size: 60, color: Colors.grey[400])
+                          : null,
                     ),
-                    itemCount: _galleryPhotos.length,
-                    itemBuilder: (context, index) {
-                      final photoUrl = _galleryPhotos[index];
-                      return GestureDetector(
-                        onLongPress: () => _deletePhoto(photoUrl),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            image: DecorationImage(image: NetworkImage(photoUrl), fit: BoxFit.cover),
-                          ),
-                        ),
-                      );
-                    },
                   ),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(Icons.edit, size: 20, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _name,
+              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildInfoTile(theme, Icons.cake_outlined, 'Age', '$_age세'),
+                _buildInfoTile(theme, Icons.tag, 'Tag', _tag),
+              ],
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildInfoTile(ThemeData theme, IconData icon, String label, String value) {
+    return Column(
+      children: [
+        Icon(icon, color: theme.colorScheme.primary, size: 28),
+        const SizedBox(height: 8),
+        Text(label, style: theme.textTheme.bodySmall),
+        const SizedBox(height: 4),
+        Text(value, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+  Widget _buildGallerySection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Gallery (${_galleryPhotos.length})',
+          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        _galleryPhotos.isEmpty
+            ? Container(
+                height: 150,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Text(
+                    "사진을 추가해보세요!",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+              )
+            : GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: _galleryPhotos.length,
+                itemBuilder: (context, index) {
+                  final photoUrl = _galleryPhotos[index];
+                  return GestureDetector(
+                    onLongPress: () => _deletePhoto(photoUrl),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(photoUrl, fit: BoxFit.cover),
+                    ),
+                  );
+                },
+              ),
+      ],
     );
   }
 }

@@ -35,8 +35,37 @@ class ImageRepository {
       return downloadUrl;
 
     } catch (e) {
-      print("🔥 사진 업로드 실패 (에러코드 확인): $e");
-      return null;
-    }
-  }
-}
+            print("🔥 사진 업로드 실패 (에러코드 확인): $e");
+            return null;
+          }
+        }
+      
+        // New method for multiple images
+        Future<List<String>> pickAndUploadMultipleImages() async {
+          try {
+            final List<XFile> images = await _picker.pickMultiImage();
+            if (images.isEmpty) return [];
+      
+            List<String> downloadUrls = [];
+            for (var image in images) {
+              File file = File(image.path);
+              String fileName = 'contacts/${DateTime.now().millisecondsSinceEpoch}_${images.indexOf(image)}.jpg';
+              Reference ref = _storage.ref().child(fileName);
+      
+              final metadata = SettableMetadata(contentType: 'image/jpeg');
+              Uint8List fileBytes = await file.readAsBytes();
+              await ref.putData(fileBytes, metadata);
+      
+              String downloadUrl = await ref.getDownloadURL();
+              downloadUrls.add(downloadUrl);
+              print("✅ Multi-upload success: $downloadUrl");
+            }
+            return downloadUrls;
+      
+          } catch (e) {
+            print("🔥 Multiple photo upload failed: $e");
+            return [];
+          }
+        }
+      }
+      
