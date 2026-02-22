@@ -34,220 +34,167 @@ class _AddContactDialogState extends State<AddContactDialog> {
     super.dispose();
   }
 
-    @override
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
 
-    Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
 
-      final theme = Theme.of(context);
+      title: const Center(child: Text('Add New Contact')),
 
-      return AlertDialog(
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
 
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          children: [
+            const SizedBox(height: 16),
 
-        title: const Center(child: Text('Add New Contact')),
+            GestureDetector(
+              onTap: _pickImage,
 
-        content: SingleChildScrollView(
+              child: Stack(
+                alignment: Alignment.center,
 
-          child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
 
-            mainAxisSize: MainAxisSize.min,
+                    backgroundColor: Colors.grey[200],
 
-            children: [
-
-              const SizedBox(height: 16),
-
-              GestureDetector(
-
-                onTap: _pickImage,
-
-                child: Stack(
-
-                  alignment: Alignment.center,
-
-                  children: [
-
-                    CircleAvatar(
-
-                      radius: 50,
-
-                      backgroundColor: Colors.grey[200],
-
-                      backgroundImage: _profileImageUrl != null
-
-                          ? NetworkImage(_profileImageUrl!)
-
-                          : null,
-
-                    ),
-
-                    if (_profileImageUrl == null)
-
-                      Icon(Icons.add_a_photo_outlined, color: Colors.grey[600], size: 30)
-
-                    else
-
-                      Container(
-
-                        decoration: BoxDecoration(
-
-                          color: Colors.black.withOpacity(0.4),
-
-                          shape: BoxShape.circle,
-
-                        ),
-
-                        child: const Icon(Icons.edit, color: Colors.white, size: 30),
-
-                      ),
-
-                  ],
-
-                ),
-
-              ),
-
-              const SizedBox(height: 24),
-
-              TextField(
-
-                controller: _nameController,
-
-                decoration: InputDecoration(
-
-                  labelText: 'Name',
-
-                  prefixIcon: const Icon(Icons.person_outline),
-
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-
-                ),
-
-              ),
-
-              const SizedBox(height: 16),
-
-              TextField(
-
-                controller: _ageController,
-
-                keyboardType: TextInputType.number,
-
-                decoration: InputDecoration(
-
-                  labelText: 'Age',
-
-                  prefixIcon: const Icon(Icons.cake_outlined),
-
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-
-                ),
-
-              ),
-
-              const SizedBox(height: 16),
-
-              TextField(
-
-                controller: _featureController,
-
-                decoration: InputDecoration(
-
-                  labelText: 'Tag',
-
-                  prefixIcon: const Icon(Icons.tag),
-
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-
-                ),
-
-              ),
-
-            ],
-
-          ),
-
-        ),
-
-        actionsAlignment: MainAxisAlignment.center,
-
-        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-
-        actions: [
-
-          Row(
-
-            children: [
-
-              Expanded(
-
-                child: TextButton(
-
-                  onPressed: () => Navigator.pop(context),
-
-                  child: const Text('Cancel'),
-
-                ),
-
-              ),
-
-              const SizedBox(width: 8),
-
-              Expanded(
-
-                child: FilledButton(
-
-                  style: FilledButton.styleFrom(
-
-                    shape: RoundedRectangleBorder(
-
-                      borderRadius: BorderRadius.circular(12),
-
-                    ),
-
+                    backgroundImage: _profileImageUrl != null
+                        ? NetworkImage(_profileImageUrl!)
+                        : null,
                   ),
 
-                  onPressed: () async {
+                  if (_profileImageUrl == null)
+                    Icon(
+                      Icons.add_a_photo_outlined,
+                      color: Colors.grey[600],
+                      size: 30,
+                    )
+                  else
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.4),
 
-                    if (_nameController.text.isEmpty) return;
+                        shape: BoxShape.circle,
+                      ),
 
-                    final repository = ContactRepositoryImpl();
+                      child: const Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                    ),
+                ],
+              ),
+            ),
 
-                    await repository.addContact(
+            const SizedBox(height: 24),
 
-                      _nameController.text,
+            TextField(
+              controller: _nameController,
 
-                      _ageController.text,
+              decoration: InputDecoration(
+                labelText: 'Name',
 
-                      _featureController.text,
+                prefixIcon: const Icon(Icons.person_outline),
 
-                      _profileImageUrl,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
 
-                    );
+            const SizedBox(height: 16),
 
-                    if (context.mounted) {
+            TextField(
+              controller: _ageController,
 
-                      Navigator.pop(context);
+              keyboardType: TextInputType.number,
 
-                    }
+              decoration: InputDecoration(
+                labelText: 'Birth',
 
-                  },
+                prefixIcon: const Icon(Icons.cake_outlined),
 
-                  child: const Text('Save'),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
 
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: _featureController,
+
+              decoration: InputDecoration(
+                labelText: 'Tag',
+
+                prefixIcon: const Icon(Icons.tag),
+
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      actionsAlignment: MainAxisAlignment.center,
+
+      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+
+                child: const Text('Cancel'),
+              ),
+            ),
+
+            const SizedBox(width: 8),
+
+            Expanded(
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
 
+                onPressed: () async {
+                  if (_nameController.text.isEmpty) return;
+
+                  final repository = ContactRepositoryImpl();
+
+                  await repository.addContact(
+                    _nameController.text,
+
+                    _ageController.text,
+
+                    _featureController.text,
+
+                    _profileImageUrl,
+                  );
+
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                  }
+                },
+
+                child: const Text('Save'),
               ),
-
-            ],
-
-          ),
-
-        ],
-
-      );
-
-    }
-
+            ),
+          ],
+        ),
+      ],
+    );
   }
-
-  
+}

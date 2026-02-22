@@ -59,7 +59,9 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("프로필 사진이 변경되었습니다!")));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("프로필 사진이 변경되었습니다!")));
       }
     }
   }
@@ -82,55 +84,91 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
         title: Text("${_selectedPhotos.length}개의 사진 삭제"),
         content: const Text("선택한 사진들을 갤러리에서 지우시겠습니까?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("취소")),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("삭제", style: TextStyle(color: Colors.red))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("취소"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("삭제", style: TextStyle(color: Colors.red)),
+          ),
         ],
       ),
     );
 
     if (confirm == true) {
       setState(() => _isLoading = true);
-      await _contactRepo.deleteGalleryPhotos(widget.contact.id, _selectedPhotos);
+      await _contactRepo.deleteGalleryPhotos(
+        widget.contact.id,
+        _selectedPhotos,
+      );
       _exitSelectionMode();
       await _loadGallery();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${_selectedPhotos.length}개의 사진이 삭제되었습니다.")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("${_selectedPhotos.length}개의 사진이 삭제되었습니다.")),
+        );
       }
     }
   }
-  
+
   void _editContactInfo() async {
     final nameController = TextEditingController(text: _name);
     final ageController = TextEditingController(text: _age.toString());
     final tagController = TextEditingController(text: _tag);
     await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('정보 수정'),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: '이름')),
-            TextField(controller: ageController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: '나이')),
-            TextField(controller: tagController, decoration: const InputDecoration(labelText: '특징')),
-          ]),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
-            ElevatedButton(
-                onPressed: () async {
-                  if (nameController.text.isEmpty) return;
-                  await _contactRepo.updateContactInfo(widget.contact.id, nameController.text, ageController.text, tagController.text);
-                  if (mounted) {
-                    setState(() {
-                      _name = nameController.text;
-                      _age = int.tryParse(ageController.text) ?? 0;
-                      _tag = tagController.text;
-                    });
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("정보가 수정되었습니다!")));
-                  }
-                },
-                child: const Text('저장')),
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('정보 수정'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: '이름'),
+            ),
+            TextField(
+              controller: ageController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: '나이'),
+            ),
+            TextField(
+              controller: tagController,
+              decoration: const InputDecoration(labelText: '특징'),
+            ),
           ],
-        ));
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('취소'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.isEmpty) return;
+              await _contactRepo.updateContactInfo(
+                widget.contact.id,
+                nameController.text,
+                ageController.text,
+                tagController.text,
+              );
+              if (mounted) {
+                setState(() {
+                  _name = nameController.text;
+                  _age = int.tryParse(ageController.text) ?? 0;
+                  _tag = tagController.text;
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text("정보가 수정되었습니다!")));
+              }
+            },
+            child: const Text('저장'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _onPhotoTap(String photoUrl) {
@@ -184,7 +222,10 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
             ),
           ),
           if (_isLoading)
-            Container(color: Colors.black.withOpacity(0.5), child: const Center(child: CircularProgressIndicator())),
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
         ],
       ),
     );
@@ -212,8 +253,16 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
       return AppBar(
         title: Text(_name),
         actions: [
-          IconButton(onPressed: _editContactInfo, icon: const Icon(Icons.edit_note), tooltip: "정보 수정"),
-          IconButton(onPressed: _addPhoto, icon: const Icon(Icons.add_a_photo_outlined), tooltip: "사진 추가"),
+          IconButton(
+            onPressed: _editContactInfo,
+            icon: const Icon(Icons.edit_note),
+            tooltip: "정보 수정",
+          ),
+          IconButton(
+            onPressed: _addPhoto,
+            icon: const Icon(Icons.add_a_photo_outlined),
+            tooltip: "사진 추가",
+          ),
         ],
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -229,66 +278,125 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: Column(children: [
-          GestureDetector(
+        child: Column(
+          children: [
+            GestureDetector(
               onTap: _changeProfileImage,
-              child: Stack(alignment: Alignment.bottomRight, children: [
-                Hero(
-                  tag: widget.contact.id,
-                  child: CircleAvatar(
-                    radius: 60,
-                    backgroundColor: Colors.grey[200],
-                    backgroundImage: _currentProfileUrl != null ? NetworkImage(_currentProfileUrl!) : null,
-                    child: _currentProfileUrl == null ? Icon(Icons.person, size: 60, color: Colors.grey[400]) : null,
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  Hero(
+                    tag: widget.contact.id,
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Colors.grey[200],
+                      backgroundImage: _currentProfileUrl != null
+                          ? NetworkImage(_currentProfileUrl!)
+                          : null,
+                      child: _currentProfileUrl == null
+                          ? Icon(
+                              Icons.person,
+                              size: 60,
+                              color: Colors.grey[400],
+                            )
+                          : null,
+                    ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration:
-                      BoxDecoration(color: theme.colorScheme.primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
-                  child: const Icon(Icons.edit, size: 20, color: Colors.white),
-                ),
-              ])),
-          const SizedBox(height: 16),
-          Text(_name, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 16),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-            _buildInfoTile(theme, Icons.cake_outlined, 'Age', '$_age세'),
-            _buildInfoTile(theme, Icons.tag, 'Tag', _tag),
-          ]),
-        ]),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.edit,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _name,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildInfoTile(theme, Icons.cake_outlined, 'Birth', '$_age'),
+                _buildInfoTile(theme, Icons.tag, 'Tag', _tag),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildInfoTile(ThemeData theme, IconData icon, String label, String value) {
+  Widget _buildInfoTile(
+    ThemeData theme,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     // This widget's implementation remains the same
-    return Column(children: [
-      Icon(icon, color: theme.colorScheme.primary, size: 28),
-      const SizedBox(height: 8),
-      Text(label, style: theme.textTheme.bodySmall),
-      const SizedBox(height: 4),
-      Text(value, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-    ]);
+    return Column(
+      children: [
+        Icon(icon, color: theme.colorScheme.primary, size: 28),
+        const SizedBox(height: 8),
+        Text(label, style: theme.textTheme.bodySmall),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildGallerySection(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Gallery (${_galleryPhotos.length})', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          'Gallery (${_galleryPhotos.length})',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 16),
         _galleryPhotos.isEmpty
             ? Container(
                 height: 150,
-                decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12)),
-                child: const Center(child: Text("사진을 추가해보세요!", style: TextStyle(color: Colors.grey))))
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Text(
+                    "사진을 추가해보세요!",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+              )
             : GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 8, mainAxisSpacing: 8),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
                 itemCount: _galleryPhotos.length,
                 itemBuilder: (context, index) {
                   final photoUrl = _galleryPhotos[index];
@@ -299,19 +407,28 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network(photoUrl, fit: BoxFit.cover)),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(photoUrl, fit: BoxFit.cover),
+                        ),
                         if (_isSelectionMode)
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             decoration: BoxDecoration(
-                              color: isSelected ? theme.colorScheme.primary.withOpacity(0.5) : Colors.black.withOpacity(0.5),
+                              color: isSelected
+                                  ? theme.colorScheme.primary.withOpacity(0.5)
+                                  : Colors.black.withOpacity(0.5),
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                         if (isSelected)
                           const Align(
                             alignment: Alignment.center,
-                            child: Icon(Icons.check_circle, color: Colors.white, size: 40),
+                            child: Icon(
+                              Icons.check_circle,
+                              color: Colors.white,
+                              size: 40,
+                            ),
                           ),
                       ],
                     ),

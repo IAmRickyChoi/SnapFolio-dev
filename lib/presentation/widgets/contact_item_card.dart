@@ -25,9 +25,7 @@ class _ContactItemCardState extends State<ContactItemCard> {
   @override
   void initState() {
     super.initState();
-    _galleryFuture = widget.repository.getGalleryPhotos(
-      widget.contact.id,
-    );
+    _galleryFuture = widget.repository.getGalleryPhotos(widget.contact.id);
   }
 
   @override
@@ -72,12 +70,17 @@ class _ContactItemCardState extends State<ContactItemCard> {
                           Flexible(
                             child: Text(
                               widget.contact.name,
-                              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Chip(
-                            avatar: const Icon(Icons.photo_library_outlined, size: 16),
+                            avatar: const Icon(
+                              Icons.photo_library_outlined,
+                              size: 16,
+                            ),
                             label: Text(widget.contact.photoCount.toString()),
                             padding: EdgeInsets.zero,
                           ),
@@ -85,24 +88,40 @@ class _ContactItemCardState extends State<ContactItemCard> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "Age: ${widget.contact.age} / Tag: ${widget.contact.tag}",
+                        "Birth: ${widget.contact.age} / Tag: ${widget.contact.tag}",
                         style: theme.textTheme.bodyMedium,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
                       // Gallery Preview
-                      Expanded( // Use Expanded to make FutureBuilder fill available height
+                      Expanded(
+                        // Use Expanded to make FutureBuilder fill available height
                         child: FutureBuilder<List<String>>(
                           future: _galleryFuture,
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)));
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              );
                             }
                             final photos = snapshot.data ?? [];
                             if (photos.isEmpty) {
                               return const Align(
                                 alignment: Alignment.bottomLeft,
-                                child: Text('No photos yet.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                child: Text(
+                                  'No photos yet.',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
                               );
                             }
                             return _buildResponsiveGrid(photos);
@@ -129,12 +148,14 @@ class _ContactItemCardState extends State<ContactItemCard> {
     return LayoutBuilder(
       builder: (context, constraints) {
         const double circleDiameter = 44.0;
-        const double overlap = 28.0; // How much each circle overlaps the previous one
-        
+        const double overlap =
+            28.0; // How much each circle overlaps the previous one
+
         final double availableWidth = constraints.maxWidth;
-        
+
         // Calculate how many circles can fit
-        int maxPossibleFitCount = 1 + ((availableWidth - circleDiameter) / overlap).floor();
+        int maxPossibleFitCount =
+            1 + ((availableWidth - circleDiameter) / overlap).floor();
         int displayCount = min(photoCount, maxPossibleFitCount);
         if (displayCount <= 0) return const SizedBox.shrink();
 
