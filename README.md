@@ -11,10 +11,13 @@
 
 ### 📱 プレビュー
 
-| リストビュー (レスポンシブ) | 詳細ビュー (ギャラリー) |
+| リストビュー (レスポンシブ) | 詳細ビュー (ギャラリー) | 詳細ビュー (ギャラリー) |
+|:-------------------------:|:---------------------------:|:---------------------------:|
+| <img src="./assets/screenshots/auth_main.png" width="250"> | <img src="./assets/screenshots/contact_list.png" width="250"> |<img src="./assets/screenshots/contact_add.png" width="250"> |
+
+| リストビュー (レスポンシブ) | 詳細ビュー (ギャラリー) | 
 |:-------------------------:|:---------------------------:|
-| ![List View](./assets/screenshots/list_view.png) | ![Detail View](./assets/screenshots/detail_view.png) |
-> *スクリーンショットを `assets/screenshots/` ディレクトリに追加し、上記のパスを更新してください。*
+| <img src="./assets/screenshots/contact_detail.png" width="250"> | <img src="./assets/screenshots/pictures_add.png" width="250"> |
 
 ### ✨ 主な機能
 
